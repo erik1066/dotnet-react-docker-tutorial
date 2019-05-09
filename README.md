@@ -11,6 +11,8 @@ For Windows users, make sure you have the following software installed:
 1. Docker for Windows
 1. Windows Subsystem for Linux (WSL) with Ubuntu 18.04
 1. Visual Studio Code
+1. C# extension for Visual Studio Code
+1. Chrome JavaScript Debugger extension for Visual Studio Code
 
 I strongly recommend following the setup guide for Windows Subsystem for Linux at https://github.com/erik1066/windows-wsl-ubuntu-setup. The guide includes a [script](https://github.com/erik1066/windows-wsl-ubuntu-setup/blob/master/scripts.sh) that will install all the necessary software in Ubuntu, such as the .NET Core SDK, NodeJS, and Docker Compose.
 
@@ -186,3 +188,94 @@ Observe that all items you can return will be of type `string`. In the case of `
 The `Configuration` object isn't visible outside of `Startup.cs` and that's generally okay, as `Startup.cs` is where dependency injection (DI) is generally done and thus where the ENV vars would be used.
 
 To see an example of .NET Core dependency injection in action with Mongo, where the Mongo connection string is passed into the container via environment variables, see the [ASP.NET Core Mongo CRUD microservice](https://github.com/erik1066/fdns-ms-dotnet-object) on GitHub.
+
+## Debugging in Visual Studio Code
+
+Create a `.vscode` folder:
+
+```bash
+mkdir .vscode
+```
+
+We're now going to create a compound launch file that runs two debuggers: One for React that runs in Chrome and one for .NET Core.
+
+Add a `launch.json` file like such:
+
+```json
+{
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "[localhost] ASP.NET Core and Chromium",
+      "configurations": [
+        "[localhost] .NET Core Launch (web)",
+        "Launch Chromium"
+      ]
+    }
+  ],
+  "configurations": [
+    {
+      "name": "[localhost] .NET Core Launch (web)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/dotnet-react-example.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart",
+      "launchBrowser": {
+        "enabled": false, // normally true, but set to 'false' for compound debugging
+        "args": "${auto-detect-url}",
+        "webRoot": "${workspaceFolder}",
+        "windows": {
+          "command": "cmd.exe",
+          "args": "/C start ${auto-detect-url}"
+        },
+        "osx": {
+          "command": "open"
+        },
+        "linux": {
+          // "command": "xdg-open"
+          "command": "/usr/bin/chromium-browser" // for Linux
+        }
+      }
+    },
+    {
+      "name": "Launch Chromium",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5000",
+      "webRoot": "${workspaceRoot}",
+      "runtimeExecutable": "/usr/bin/chromium-browser" // for Linux
+    },
+    {
+      "name": ".NET Core Attach",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:pickProcess}"
+    }
+  ]
+}
+```
+
+Note that on Windows 10, you may need to change the `runtimeExecutable": "/usr/bin/chromium-browser"` line to point to the location of Chrome. The location specified above is specific to Chromium on Ubuntu 18.04.
+
+Next, add a `tasks.json` file:
+
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["build", "${workspaceFolder}/dotnet-react-example.csproj"],
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}
+```
+
+In Visual Studio Code, in the **Debugging** pane, select the `[localhost] ASP.NET Core and Chromium` option from the debug mode selector and press the green **Debug** button. Two debuggers will launch: One for the .NET Core backend and one for the React frontend in Chrome. (Be sure you've installed the JavaScript Debugger for Chrome extension in Visual Studio Code.)

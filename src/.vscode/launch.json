@@ -1,0 +1,55 @@
+{
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "[localhost] ASP.NET Core and Chromium",
+      "configurations": [
+        "[localhost] .NET Core Launch (web)",
+        "Launch Chromium"
+      ]
+    }
+  ],
+  "configurations": [
+    {
+      "name": "[localhost] .NET Core Launch (web)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/dotnet-react-example.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "stopAtEntry": false,
+      "internalConsoleOptions": "openOnSessionStart",
+      "launchBrowser": {
+        "enabled": false, // normally true, but set to 'false' for compound debugging
+        "args": "${auto-detect-url}",
+        "webRoot": "${workspaceFolder}",
+        "windows": {
+          "command": "cmd.exe",
+          "args": "/C start ${auto-detect-url}"
+        },
+        "osx": {
+          "command": "open"
+        },
+        "linux": {
+          // "command": "xdg-open"
+          "command": "/usr/bin/chromium-browser" // for Linux
+        }
+      }
+    },
+    {
+      "name": "Launch Chromium",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5000",
+      "webRoot": "${workspaceRoot}",
+      "runtimeExecutable": "/usr/bin/chromium-browser" // for Linux
+    },
+    {
+      "name": ".NET Core Attach",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:pickProcess}"
+    }
+  ]
+}
