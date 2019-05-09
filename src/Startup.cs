@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace src
+namespace dotnet_react_example
 {
     public class Startup
     {
@@ -25,7 +25,7 @@ namespace src
             // In production, the React files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
-                configuration.RootPath = "ClientApp/build";
+                configuration.RootPath = "clientapp/build";
             });
         }
 
@@ -43,6 +43,9 @@ namespace src
                 app.UseHsts();
             }
 
+            string mongoConnectionString = Configuration["MONGO_CONNECTION_STRING"];
+            // do something with this connection string
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSpaStaticFiles();
@@ -56,7 +59,7 @@ namespace src
 
             app.UseSpa(spa =>
             {
-                spa.Options.SourcePath = "ClientApp";
+                spa.Options.SourcePath = "clientapp";
 
                 if (env.IsDevelopment())
                 {
