@@ -1,5 +1,5 @@
 # Build stage
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2.203 as build
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2.300 as build
 
 # installs NodeJS and NPM
 RUN apt-get update -yq && apt-get upgrade -yq && apt-get install -yq curl git nano
@@ -23,7 +23,7 @@ ENV NODE_ENV production
 RUN dotnet publish -c Release
 
 # Run stage
-FROM mcr.microsoft.com/dotnet/core/aspnet:2.2.4-alpine3.9 as run
+FROM mcr.microsoft.com/dotnet/core/aspnet:2.2.5-alpine3.9 as run
 
 ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 
