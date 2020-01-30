@@ -24,7 +24,7 @@ Once WSL is installed and you have a Bash terminal open, navigate to a folder of
 cd /mnt/c/Users/yourusername/source
 ```
 
-> Note that `/mnt/c/` in WSL points to the C: drive on the Windows file system
+> `/mnt/c/` in WSL points to the C: drive on the Windows file system
 
 Once you're in the desired folder, run the following commands:
 
@@ -41,9 +41,16 @@ rm -rf ClientApp
 npx create-react-app clientapp
 ```
 
-Lower-casing is important for `clientapp` on the 2nd line since `npx` disallows anything but lower-case project names. Of course, .NET Core expects the pascal-cased `ClientApp`.
+> To use TypeScript instead of JavaScript, instead run `npx create-react-app clientapp --template typescript`.
 
-You can run `mv ./clientapp ./ClientApp`, which is the simplest option, or you can keep `clientapp` lower-cased and instead make the following source-code level changes in the .NET Core codebase:
+Lower-casing is important for `clientapp` on the 2nd line since `npx` disallows anything but lower-case project names. Of course, .NET Core expects the pascal-cased `ClientApp`. We can fix this with two `mv` commands:
+
+```bash
+mv clientapp clientapp2
+mv clientapp2 ClientApp
+```
+
+You may alternatively keep `clientapp` lower-cased and instead make the following source-code level changes in the .NET Core codebase:
 
 1. Open `dotnet-react-example.csproj` and change `<SpaRoot>ClientApp</SpaRoot>`
 1. Open `Startup.cs` and change `configuration.RootPath = "ClientApp/build";`
@@ -84,11 +91,11 @@ The Dockerfile ought to look like this:
 
 ```dockerfile
 # Build stage
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2.300 as build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1-alpine as build
 
 # installs NodeJS and NPM
 RUN apt-get update -yq && apt-get upgrade -yq && apt-get install -yq curl git nano
-RUN curl -sL https://deb.nodesource.com/setup_10.x | bash - && apt-get install -yq nodejs build-essential
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - && apt-get install -yq nodejs build-essential
 
 # copy the files from the file system so they can built
 COPY ./ /src
@@ -108,7 +115,7 @@ ENV NODE_ENV production
 RUN dotnet publish -c Release
 
 # Run stage
-FROM mcr.microsoft.com/dotnet/core/aspnet:2.2.5-alpine3.9 as run
+FROM mcr.microsoft.com/dotnet/core-nightly/aspnet:3.1-alpine as run
 
 ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 
@@ -123,7 +130,7 @@ ARG MONGO_USE_SSL
 ENV MONGO_CONNECTION_STRING ${MONGO_CONNECTION_STRING}
 ENV MONGO_USE_SSL ${MONGO_USE_SSL}
 
-COPY --from=build /src/bin/Release/netcoreapp2.2/publish /app
+COPY --from=build /src/bin/Release/netcoreapp3.1/publish /app
 WORKDIR /app
 
 RUN mkdir -p /ASP.NET/DataProtection-Keys
@@ -219,7 +226,7 @@ Add a `launch.json` file like such:
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/bin/Debug/netcoreapp2.2/dotnet-react-example.dll",
+      "program": "${workspaceFolder}/bin/Debug/netcoreapp3.1/dotnet-react-example.dll",
       "args": [],
       "cwd": "${workspaceFolder}",
       "stopAtEntry": false,
